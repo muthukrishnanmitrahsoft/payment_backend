@@ -9,7 +9,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost:3000",  # React app (or whatever port it's running on)
-    "https://your-production-url.com",  # Your production URL
+    "https://payment-frontend-phi.vercel.app/"
     # Add more origins if necessary
 ]
 
