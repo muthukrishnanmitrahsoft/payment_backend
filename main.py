@@ -10,7 +10,9 @@ app = FastAPI()
 origins = [
     "http://localhost:3000", 
     "http://localhost:3001",# React app (or whatever port it's running on)
-"https://payment-frontend-x8sf-hzhecwg3d.vercel.app"    # Add more origins if necessary
+"https://payment-frontend-x8sf-hzhecwg3d.vercel.app",    # Add more origins if necessary
+    "https://payment-frontend-x8sf-j5nbvb214.vercel.app",
+    
 ]
 
 # Add CORS middleware
