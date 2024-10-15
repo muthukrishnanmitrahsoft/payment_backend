@@ -12,6 +12,7 @@ from starlette.status import HTTP_200_OK
 stripe.api_key = STRIPE_SECRET_KEY
 success_url_data = SUCCESS_URL
 cancel_url_data = CANCEL_URL
+end_point = END_POINT
 
 router = APIRouter()
 
@@ -86,7 +87,7 @@ async def create_payment_link(payment_data: PaymentLinkCreate, user: User = Depe
 async def stripe_webhook(request: Request):
     payload = await request.body()
     sig_header = request.headers.get("Stripe-Signature")
-    endpoint_secret = "whsec_kyJvoLYkpnyqx4qxGkZRNC7TDKOXNjeX"
+    endpoint_secret = end_point
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
