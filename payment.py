@@ -1,7 +1,7 @@
 import stripe
 from fastapi import APIRouter, Depends, HTTPException,Request
 from sqlalchemy.orm import Session
-from config import STRIPE_SECRET_KEY, SessionLocal
+from config import *
 from models import PaymentLink
 from schemas import PaymentLinkCreate, PaymentLinkResponse
 from datetime import datetime
@@ -10,14 +10,17 @@ import json
 from starlette.status import HTTP_200_OK
 
 stripe.api_key = STRIPE_SECRET_KEY
+success_url_data = SUCCESS_URL
+cancel_url_data = CANCEL_URL
 
 router = APIRouter()
+
 
 
 @router.post("/create-payment-link/", response_model=PaymentLinkResponse)
 async def create_payment_link(payment_data: PaymentLinkCreate, user: User = Depends(get_current_user)):
     db = SessionLocal()  # Open the session
-    try:
+    try:    
         # Create the PaymentLink in the database
         payment_link = PaymentLink(
             amount=payment_data.amount,
@@ -30,23 +33,25 @@ async def create_payment_link(payment_data: PaymentLinkCreate, user: User = Depe
         db.add(payment_link)
         db.commit()
         db.refresh(payment_link)  # Refresh to get the updated instance from the database
-        
-        # Create Stripe Checkout Session
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
+        line_items = [
+            {
                 'price_data': {
                     'currency': payment_data.currency,
                     'product_data': {
-                        'name': payment_data.description,
+                        'name': item.name,  # Access 'name' using dot notation
                     },
-                    'unit_amount': int(payment_data.amount * 100),
+                    'unit_amount': int(item.price * 100),  # Stripe expects amounts in cents
                 },
-                'quantity': 1,
-            }],
+                'quantity': item.quantity,  # Access 'quantity' using dot notation
+            } for item in payment_data.items  # Loop over each item in payment_data.items
+        ]
+        # Create Stripe Checkout Session
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
             mode='payment',
-            success_url = "https://payment-frontend-phi.vercel.app/dashboard?status=success",
-            cancel_url = "https://payment-frontend-phi.vercel.app/dashboard?status=failed",
+            success_url = success_url_data,
+            cancel_url = cancel_url_data,
             client_reference_id=payment_link.id  # Pass the payment_link_id here
         )
 
@@ -109,15 +114,4 @@ async def stripe_webhook(request: Request):
                 db.commit()
 
     return {"status": "success"}, HTTP_200_OK
-
-
-
-@router.get("/success")
-async def payment_success():
-    return {"message": "Payment successful!"}
-
-
-@router.get("/cancel")
-async def payment_cancel():
-    return {"message": "Payment canceled."}
 

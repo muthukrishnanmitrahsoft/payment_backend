@@ -8,7 +8,8 @@ import uvicorn
 app = FastAPI()
 
 origins = [
-    "http://localhost:3000",  # React app (or whatever port it's running on)
+    "http://localhost:3000", 
+    "http://localhost:3001",# React app (or whatever port it's running on)
     "https://payment-frontend-phi.vercel.app"
     # Add more origins if necessary
 ]
