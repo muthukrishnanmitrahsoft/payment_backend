@@ -1,16 +1,21 @@
 from fastapi import FastAPI
 from payment import router as payment_router
+from config import *
 from analytics import router as analytics_router
 from config import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 app = FastAPI()
+core_url = CORE_URL
+
 
 origins = [
     "http://localhost:3000", 
     "http://localhost:3001",# React app (or whatever port it's running on)
-"https://stripe-frontend-six.vercel.app/"    
+    "https://payment-frontend-q795buqz4-muthu-krishnans-projects-2482a5d2.vercel.app",
+    core_url
+    # Add more origins if necessary
 ]
 
 # Add CORS middleware

@@ -12,6 +12,7 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 SUCCESS_URL = os.getenv("SUCCESS_URL")
 CANCEL_URL = os.getenv("CANCEL_URL")
 END_POINT = os.getenv("END_POINT")
+CORE_URL = os.getenv("CORE_URL")
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
