@@ -21,6 +21,12 @@ router = APIRouter()
 @router.post("/create-payment-link/", response_model=PaymentLinkResponse)
 async def create_payment_link(payment_data: PaymentLinkCreate, user: User = Depends(get_current_user)):
     db = SessionLocal()  # Open the session
+    tax_rate = stripe.TaxRate.create(
+    display_name="Service Tax",
+    percentage=8.5,
+    inclusive=False,  # Change to True if tax is included in item prices
+)
+    tax_rate_id = tax_rate.id  # Get the ID of the created tax rate
     try:    
         # Create the PaymentLink in the database
         payment_link = PaymentLink(
@@ -36,19 +42,26 @@ async def create_payment_link(payment_data: PaymentLinkCreate, user: User = Depe
         db.refresh(payment_link)  # Refresh to get the updated instance from the database
         line_items = [
             {
+       
                 'price_data': {
                     'currency': payment_data.currency,
+
                     'product_data': {
                         'name': item.name,  # Access 'name' using dot notation
                     },
                     'unit_amount': int(item.price * 100),  # Stripe expects amounts in cents
                 },
                 'quantity': item.quantity,  # Access 'quantity' using dot notation
+                        'tax_rates': [tax_rate_id],  # Add the tax rate here
             } for item in payment_data.items  # Loop over each item in payment_data.items
         ]
+        if payment_data.currency == 'EUR':
+            payment_method_types = ['card', 'ideal']
+        else:
+            payment_method_types = ['card']
         # Create Stripe Checkout Session
         session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
+            payment_method_types=payment_method_types,
             line_items=line_items,
             mode='payment',
             success_url = success_url_data,
